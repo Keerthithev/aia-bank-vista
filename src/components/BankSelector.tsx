@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, Building2, ChevronDown } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -6,29 +5,29 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
-const banks = [
-  { id: 'commercial', name: 'Commercial Bank', symbol: 'COMB', price: 125.50, change: '+2.3%' },
-  { id: 'sampath', name: 'Sampath Bank', symbol: 'SAMP', price: 98.75, change: '+1.8%' },
-  { id: 'hnb', name: 'Hatton National Bank', symbol: 'HNB', price: 156.20, change: '-0.5%' },
-  { id: 'panasia', name: 'Pan Asia Banking', symbol: 'PAB', price: 32.40, change: '+3.2%' },
-  { id: 'dfcc', name: 'DFCC Bank', symbol: 'DFCC', price: 67.80, change: '+1.1%' },
-  { id: 'ndb', name: 'National Development Bank', symbol: 'NDB', price: 89.30, change: '+0.9%' },
-];
-
 const BankSelector = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
+  const banks = [
+    { id: 'commercial', name: 'Commercial Bank', symbol: 'COMB' },
+    { id: 'sampath', name: 'Sampath Bank', symbol: 'SAMP' },
+    { id: 'hnb', name: 'Hatton National Bank', symbol: 'HNB' },
+    { id: 'panasia', name: 'Pan Asia Banking', symbol: 'PAB' },
+    { id: 'dfcc', name: 'DFCC Bank', symbol: 'DFCC' },
+    { id: 'ndb', name: 'National Development Bank', symbol: 'NDB' },
+  ];
+
   const filteredBanks = banks.filter(bank =>
-    bank.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    bank.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+    bank.name.toLowerCase().includes(search.toLowerCase()) ||
+    bank.symbol.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleBankSelect = (bankId: string) => {
     navigate(`/bank/${bankId}`);
     setIsOpen(false);
-    setSearchTerm('');
+    setSearch('');
   };
 
   return (
@@ -38,9 +37,9 @@ const BankSelector = () => {
         <Input
           type="text"
           placeholder="Search trading banks..."
-          value={searchTerm}
+          value={search}
           onChange={(e) => {
-            setSearchTerm(e.target.value);
+            setSearch(e.target.value);
             setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
@@ -56,31 +55,19 @@ const BankSelector = () => {
               <Button
                 key={bank.id}
                 variant="ghost"
-                className="w-full justify-between p-4 h-auto hover:bg-primary/10 rounded-lg mb-1"
+                className="w-full flex items-center justify-between gap-2 px-4 py-3 hover:bg-blue-50"
                 onClick={() => handleBankSelect(bank.id)}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center">
-                    <Building2 className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <div className="font-semibold text-gray-900">{bank.name}</div>
-                    <div className="text-sm text-gray-500">{bank.symbol}</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-gray-900">LKR {bank.price}</div>
-                  <div className={`text-sm font-medium ${
-                    bank.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {bank.change}
-                  </div>
+                  <img src={`/logos/${bank.id}.png`} alt={bank.name} className="w-10 h-10 object-contain bg-white border border-gray-200 p-1" />
+                  <span className="font-semibold text-gray-900">{bank.name}</span>
+                  <span className="text-xs text-gray-500 ml-2">{bank.symbol}</span>
                 </div>
               </Button>
             ))
           ) : (
             <div className="p-4 text-center text-gray-500">
-              No banks found matching "{searchTerm}"
+              No banks found matching "{search}"
             </div>
           )}
         </Card>

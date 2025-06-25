@@ -1,17 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Percent, PieChart, BarChart3 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-
-const economicData = [
-  { month: 'Jan', usd: 320, inflation: 4.2, interest: 9.5, gdp: 2.8 },
-  { month: 'Feb', usd: 325, inflation: 4.5, interest: 9.8, gdp: 3.1 },
-  { month: 'Mar', usd: 330, inflation: 4.8, interest: 10.2, gdp: 3.0 },
-  { month: 'Apr', usd: 335, inflation: 5.1, interest: 10.5, gdp: 2.9 },
-  { month: 'May', usd: 328, inflation: 4.9, interest: 10.3, gdp: 3.2 },
-  { month: 'Jun', usd: 322, inflation: 4.6, interest: 10.0, gdp: 3.4 },
-];
+import Papa from 'papaparse';
+import { useEffect, useState } from 'react';
 
 const indicators = [
   {
@@ -53,6 +45,34 @@ const indicators = [
 ];
 
 const EconomicIndicators = () => {
+  const [economicData, setEconomicData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/environmental.csv')
+      .then(res => res.text())
+      .then(text => {
+        const parsed = Papa.parse(text, { header: true });
+        // Transform the parsed data to the format expected by the charts
+        const months = Object.keys(parsed.data[0] || {}).filter(k => k !== '');
+        const inf = parsed.data.find(row => row[''] === 'inf');
+        const usd = parsed.data.find(row => row[''] === 'usd');
+        const int = parsed.data.find(row => row[''] === 'int');
+        const gdp = parsed.data.find(row => row[''] === 'gdp');
+        const chartData = months.map(month => ({
+          month,
+          usd: usd ? parseFloat(usd[month]) : null,
+          inflation: inf ? parseFloat(inf[month]) : null,
+          interest: int ? parseFloat(int[month]) : null,
+          gdp: gdp ? parseFloat(gdp[month]) : null,
+        }));
+        setEconomicData(chartData);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+
   return (
     <div className="space-y-6">
       {/* Economic Indicators Grid */}

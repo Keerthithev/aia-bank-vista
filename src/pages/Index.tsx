@@ -1,35 +1,46 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import BankSelector from '@/components/BankSelector';
 import EconomicIndicators from '@/components/EconomicIndicators';
 import { TrendingUp, BarChart3 } from 'lucide-react';
+import Papa from 'papaparse';
+import Layout from '@/components/Layout';
 
 const Index = () => {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Header */}
-      <header className="trading-gradient text-white py-8 px-6 shadow-lg">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                <TrendingUp className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold">AIA Investments</h1>
-                <p className="text-white/80 mt-1">Professional Trading Platform</p>
-              </div>
-            </div>
-            <div className="hidden md:flex items-center gap-6">
-              <div className="text-right">
-                <div className="text-sm text-white/80">Market Status</div>
-                <div className="font-semibold text-green-300">🟢 Open</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+  const [stats, setStats] = useState({ banks: 0, avgPerformance: 0, totalVolume: 0 });
 
+  useEffect(() => {
+    fetch('/forcasted stock price.csv')
+      .then(res => res.text())
+      .then(text => {
+        const rows = text.split(/\r?\n/).map(row => row.split(','));
+        // Count banks from header row
+        const header = rows[0];
+        let banks = 0;
+        for (let i = 0; i < header.length; i++) {
+          if (header[i] && header[i] !== '') banks++;
+        }
+        banks = banks / 3; // Each bank has 3 columns: name, empty, name, empty, etc.
+        // Calculate total volume and avg performance
+        let totalVolume = 0;
+        let priceCount = 0;
+        let priceSum = 0;
+        for (let i = 2; i < rows.length; i++) {
+          for (let j = 1; j < header.length; j += 3) {
+            const price = parseFloat(rows[i][j]);
+            if (!isNaN(price)) {
+              totalVolume += price;
+              priceSum += price;
+              priceCount++;
+            }
+          }
+        }
+        const avgPerformance = priceCount > 0 ? (priceSum / priceCount) : 0;
+        setStats({ banks: Math.round(banks), avgPerformance, totalVolume });
+      });
+  }, []);
+
+  return (
+    <Layout>
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Search Section */}
@@ -45,22 +56,6 @@ const Index = () => {
           
           <div className="flex justify-center mb-8">
             <BankSelector />
-          </div>
-
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg">
-              <div className="text-3xl font-bold text-primary mb-2">6</div>
-              <div className="text-gray-600">Listed Banks</div>
-            </div>
-            <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg">
-              <div className="text-3xl font-bold text-green-600 mb-2">+2.1%</div>
-              <div className="text-gray-600">Avg. Performance</div>
-            </div>
-            <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg">
-              <div className="text-3xl font-bold text-blue-600 mb-2">8.2M</div>
-              <div className="text-gray-600">Total Volume</div>
-            </div>
           </div>
         </section>
 
@@ -79,16 +74,7 @@ const Index = () => {
           <EconomicIndicators />
         </section>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8 px-6 mt-16">
-        <div className="max-w-7xl mx-auto text-center">
-          <p className="text-gray-400">
-            © 2024 AIA Investments. Professional trading platform for Sri Lankan banking sector.
-          </p>
-        </div>
-      </footer>
-    </div>
+    </Layout>
   );
 };
 
