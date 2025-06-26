@@ -14,9 +14,9 @@ const BankSelector = () => {
     { id: 'commercial', name: 'Commercial Bank', symbol: 'COMB' },
     { id: 'sampath', name: 'Sampath Bank', symbol: 'SAMP' },
     { id: 'hnb', name: 'Hatton National Bank', symbol: 'HNB' },
-    { id: 'panasia', name: 'Pan Asia Banking', symbol: 'PAB' },
-    { id: 'dfcc', name: 'DFCC Bank', symbol: 'DFCC' },
-    { id: 'ndb', name: 'National Development Bank', symbol: 'NDB' },
+    { id: 'panasia', name: 'Pan Asia Bank', symbol: 'PAB' },
+    { id: 'seylan', name: 'Seylan Bank', symbol: 'SEYB' },
+    { id: 'ntb', name: 'Nations Trust Bank', symbol: 'NTB' },
   ];
 
   const filteredBanks = banks.filter(bank =>

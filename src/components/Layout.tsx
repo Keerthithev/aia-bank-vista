@@ -5,9 +5,9 @@ const banks = [
   { id: 'commercial', name: 'Commercial Bank' },
   { id: 'sampath', name: 'Sampath Bank' },
   { id: 'hnb', name: 'Hatton National Bank' },
-  { id: 'panasia', name: 'Pan Asia Banking' },
-  { id: 'dfcc', name: 'DFCC Bank' },
-  { id: 'ndb', name: 'National Development Bank' },
+  { id: 'panasia', name: 'Pan Asia Bank' },
+  { id: 'seylan', name: 'Seylan Bank' },
+  { id: 'ntb', name: 'Nations Trust Bank' },
 ];
 
 const Layout = ({ children }: { children: React.ReactNode }) => {

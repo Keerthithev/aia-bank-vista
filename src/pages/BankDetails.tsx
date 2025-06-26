@@ -9,23 +9,59 @@ import Papa from 'papaparse';
 import Layout from '@/components/Layout';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import FinancialMetrics from '@/components/FinancialMetrics';
+
+interface PriceData {
+  date: string;
+  price: number;
+}
+
+interface MonthlyData {
+  date: string;
+  price: number;
+  count: number;
+}
+
+interface MetaData {
+  name: string;
+  symbol: string;
+  marketCap: string;
+  volume: string;
+  pe: string;
+  dividend: string;
+  capital: string;
+  description: string;
+  currentPrice: number | string;
+  isPositive: boolean;
+  change: string;
+}
 
 const BANK_COLUMN_MAP = {
   commercial: { name: 'Commercial', dateCol: 0, priceCol: 1 },
   sampath: { name: 'Sampath', dateCol: 3, priceCol: 4 },
   hnb: { name: 'HNB', dateCol: 6, priceCol: 7 },
-  panasia: { name: 'Pan Asia', dateCol: 9, priceCol: 10 },
-  dfcc: { name: 'DFCC', dateCol: 12, priceCol: 13 },
-  ndb: { name: 'NDB', dateCol: 15, priceCol: 16 },
+  panasia: { name: 'Pan Asia Bank', dateCol: 9, priceCol: 10 },
+  seylan: { name: 'Seylan Bank', dateCol: 12, priceCol: 13 },
+  ntb: { name: 'NTB', dateCol: 15, priceCol: 16 },
+};
+
+// Map bankId to CSV section name
+const BANK_CSV_SECTION_MAP: Record<string, string> = {
+  commercial: 'Commercial',
+  sampath: 'Sampath',
+  hnb: 'HNB',
+  panasia: 'Pan Asia',
+  seylan: 'Seylan',
+  ntb: 'NTB',
 };
 
 const BankDetails = () => {
   const { bankId } = useParams();
   const navigate = useNavigate();
   const [bankData, setBankData] = useState(null);
-  const [priceHistory, setPriceHistory] = useState([]);
+  const [priceHistory, setPriceHistory] = useState<PriceData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [meta, setMeta] = useState({});
+  const [meta, setMeta] = useState<MetaData | null>(null);
   const [chartType, setChartType] = useState('area');
   const [granularity, setGranularity] = useState('daily');
   const [insValue, setInsValue] = useState('');
@@ -36,15 +72,15 @@ const BankDetails = () => {
       .then(res => res.text())
       .then(text => {
         const rows = text.split(/\r?\n/).map(row => row.split(','));
-        const map = BANK_COLUMN_MAP[bankId];
+        const map = BANK_COLUMN_MAP[bankId as keyof typeof BANK_COLUMN_MAP];
         if (!map) {
           setPriceHistory([]);
-          setMeta({});
+          setMeta(null);
           setLoading(false);
           return;
         }
         // Extract price history for the selected bank
-        const priceHistoryArr = [];
+        const priceHistoryArr: PriceData[] = [];
         for (let i = 2; i < rows.length; i++) {
           const date = rows[i][map.dateCol];
           const price = rows[i][map.priceCol];
@@ -56,7 +92,7 @@ const BankDetails = () => {
         // No meta data in CSV, so set all fields to NaN
         setMeta({
           name: map.name,
-          symbol: bankId.toUpperCase(),
+          symbol: bankId!.toUpperCase(),
           marketCap: 'NaN',
           volume: 'NaN',
           pe: 'NaN',
@@ -75,7 +111,7 @@ const BankDetails = () => {
   const aggregatedData = useMemo(() => {
     if (granularity === 'daily') return priceHistory;
     if (granularity === 'monthly') {
-      const map = {};
+      const map: { [key: string]: MonthlyData } = {};
       priceHistory.forEach(({ date, price }) => {
         const [month, , year] = date.split('/');
         const key = `${year}-${month}`;
@@ -86,9 +122,9 @@ const BankDetails = () => {
       return Object.values(map).map(d => ({ date: d.date, price: d.price / d.count }));
     }
     if (granularity === 'yearly') {
-      const map = {};
+      const map: { [key: string]: MonthlyData } = {};
       priceHistory.forEach(({ date, price }) => {
-        const year = date.split('/').pop();
+        const year = date.split('/').pop() as string;
         if (!map[year]) map[year] = { date: year, price: 0, count: 0 };
         map[year].price += price;
         map[year].count += 1;
@@ -98,13 +134,49 @@ const BankDetails = () => {
     return priceHistory;
   }, [granularity, priceHistory]);
 
+  const renderChart = () => {
+    switch (chartType) {
+      case 'line':
+        return (
+          <LineChart data={aggregatedData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="date" stroke="#666" />
+            <YAxis stroke="#666" />
+            <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e0e0e0', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }} />
+            <Line type="monotone" dataKey="price" stroke="#2ec4b6" strokeWidth={3} dot={{ fill: '#2ec4b6', strokeWidth: 2, r: 3 }} />
+          </LineChart>
+        );
+      case 'bar':
+        return (
+          <BarChart data={aggregatedData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="date" stroke="#666" />
+            <YAxis stroke="#666" />
+            <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e0e0e0', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }} />
+            <Bar dataKey="price" fill="#2ec4b6" />
+          </BarChart>
+        );
+      case 'area':
+      default:
+        return (
+          <AreaChart data={aggregatedData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="date" stroke="#666" />
+            <YAxis stroke="#666" />
+            <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e0e0e0', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }} />
+            <Area type="monotone" dataKey="price" stroke="#2ec4b6" fill="#e6f9f7" strokeWidth={3} />
+          </AreaChart>
+        );
+    }
+  };
+
   const handleExportPDF = async () => {
     if (!contentRef.current) return;
     const canvas = await html2canvas(contentRef.current);
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
     pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-    pdf.save(`${meta.name || 'report'}.pdf`);
+    pdf.save(`${meta?.name || 'report'}.pdf`);
   };
 
   if (loading) return <div>Loading...</div>;
@@ -255,33 +327,7 @@ const BankDetails = () => {
                   </div>
                 </div>
                 <ResponsiveContainer width="100%" height={300}>
-                  {chartType === 'area' && (
-                    <AreaChart data={aggregatedData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="date" stroke="#666" />
-                      <YAxis stroke="#666" />
-                      <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e0e0e0', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }} />
-                      <Area type="monotone" dataKey="price" stroke="#2ec4b6" fill="#e6f9f7" strokeWidth={3} />
-                    </AreaChart>
-                  )}
-                  {chartType === 'line' && (
-                    <LineChart data={aggregatedData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="date" stroke="#666" />
-                      <YAxis stroke="#666" />
-                      <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e0e0e0', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }} />
-                      <Line type="monotone" dataKey="price" stroke="#2ec4b6" strokeWidth={3} dot={{ fill: '#2ec4b6', strokeWidth: 2, r: 3 }} />
-                    </LineChart>
-                  )}
-                  {chartType === 'bar' && (
-                    <BarChart data={aggregatedData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="date" stroke="#666" />
-                      <YAxis stroke="#666" />
-                      <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e0e0e0', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }} />
-                      <Bar dataKey="price" fill="#2ec4b6" />
-                    </BarChart>
-                  )}
+                  {renderChart()}
                 </ResponsiveContainer>
               </CardContent>
             </Card>
@@ -312,9 +358,8 @@ const BankDetails = () => {
                     />
                   </div>
                 </div>
-                
                 {insValue && !isNaN(parseFloat(insValue)) && meta.currentPrice !== 'NaN' && (
-                  parseFloat(insValue) > parseFloat(meta.currentPrice) ? (
+                  parseFloat(insValue) > parseFloat(String(meta.currentPrice)) ? (
                     <Button className="w-full mt-4" color="primary">Buy</Button>
                   ) : (
                     <Button className="w-full mt-4" color="destructive">Sell</Button>
@@ -324,25 +369,8 @@ const BankDetails = () => {
             </Card>
           </div>
 
-          {/* Notes Section */}
-          <Card className="mt-8 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-primary" />
-                Policy Notes & Analysis
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="p-6 bg-blue-50 rounded-xl">
-                <p className="text-gray-700 leading-relaxed">
-                  Environmental and policy factors continue to influence the banking sector. 
-                  Current monetary policies, inflation trends, and regulatory changes are key 
-                  drivers for {meta.name}'s performance. The bank shows strong fundamentals 
-                  with consistent dividend payments and stable capital ratios.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Financial Metrics Dashboard */}
+          <FinancialMetrics bankName={BANK_CSV_SECTION_MAP[bankId as string] || meta.name} />
         </div>
       </div>
       <div className="flex justify-end mb-4">
