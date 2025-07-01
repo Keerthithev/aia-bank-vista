@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 const indicators = [
   {
     title: 'USD/LKR',
-    value: '322.50',
+    value: '299.83',
     change: '-2.1%',
     isPositive: false,
     icon: DollarSign,
@@ -26,7 +26,7 @@ const indicators = [
   },
   {
     title: 'Interest Rate',
-    value: '10.0%',
+    value: '7.25%',
     change: '-0.3%',
     isPositive: false,
     icon: Percent,
@@ -120,27 +120,38 @@ const EconomicIndicators = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={economicData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" stroke="#666" />
-                <YAxis stroke="#666" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={economicData}>
+                <defs>
+                  <linearGradient id="usdGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.7}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="month" stroke="#888" fontSize={12} />
+                <YAxis stroke="#888" fontSize={12} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <Tooltip
+                  contentStyle={{
+                    background: 'white',
                     border: '1px solid #e0e0e0',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                  }} 
+                    borderRadius: 8,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+                  }}
+                  labelStyle={{ fontWeight: 600, color: '#3b82f6' }}
+                  formatter={v => v?.toLocaleString()}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="usd" 
-                  stroke="#3b82f6" 
+                <Area
+                  type="monotone"
+                  dataKey="usd"
+                  stroke="#3b82f6"
+                  fill="url(#usdGradient)"
                   strokeWidth={3}
-                  dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                  dot={{ r: 3, fill: '#3b82f6' }}
+                  activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }}
+                  isAnimationActive
                 />
-              </LineChart>
+              </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -154,25 +165,36 @@ const EconomicIndicators = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={economicData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" stroke="#666" />
-                <YAxis stroke="#666" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
+                <defs>
+                  <linearGradient id="inflationGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.7}/>
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="month" stroke="#888" fontSize={12} />
+                <YAxis stroke="#888" fontSize={12} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <Tooltip
+                  contentStyle={{
+                    background: 'white',
                     border: '1px solid #e0e0e0',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                  }} 
+                    borderRadius: 8,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+                  }}
+                  labelStyle={{ fontWeight: 600, color: '#ef4444' }}
+                  formatter={v => v?.toLocaleString()}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="inflation" 
-                  stroke="#ef4444" 
-                  fill="#fee2e2"
-                  strokeWidth={2}
+                <Area
+                  type="monotone"
+                  dataKey="inflation"
+                  stroke="#ef4444"
+                  fill="url(#inflationGradient)"
+                  strokeWidth={3}
+                  dot={{ r: 3, fill: '#ef4444' }}
+                  activeDot={{ r: 6, fill: '#ef4444', stroke: '#fff', strokeWidth: 2 }}
+                  isAnimationActive
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -188,27 +210,38 @@ const EconomicIndicators = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={economicData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" stroke="#666" />
-                <YAxis stroke="#666" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={economicData}>
+                <defs>
+                  <linearGradient id="interestGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.7}/>
+                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="month" stroke="#888" fontSize={12} />
+                <YAxis stroke="#888" fontSize={12} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <Tooltip
+                  contentStyle={{
+                    background: 'white',
                     border: '1px solid #e0e0e0',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                  }} 
+                    borderRadius: 8,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+                  }}
+                  labelStyle={{ fontWeight: 600, color: '#22c55e' }}
+                  formatter={v => v?.toLocaleString()}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="interest" 
-                  stroke="#10b981" 
+                <Area
+                  type="monotone"
+                  dataKey="interest"
+                  stroke="#22c55e"
+                  fill="url(#interestGradient)"
                   strokeWidth={3}
-                  dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                  dot={{ r: 3, fill: '#22c55e' }}
+                  activeDot={{ r: 6, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }}
+                  isAnimationActive
                 />
-              </LineChart>
+              </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -222,25 +255,36 @@ const EconomicIndicators = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
+            <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={economicData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" stroke="#666" />
-                <YAxis stroke="#666" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
+                <defs>
+                  <linearGradient id="gdpGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#a21caf" stopOpacity={0.7}/>
+                    <stop offset="95%" stopColor="#a21caf" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="month" stroke="#888" fontSize={12} />
+                <YAxis stroke="#888" fontSize={12} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <Tooltip
+                  contentStyle={{
+                    background: 'white',
                     border: '1px solid #e0e0e0',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                  }} 
+                    borderRadius: 8,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+                  }}
+                  labelStyle={{ fontWeight: 600, color: '#a21caf' }}
+                  formatter={v => v?.toLocaleString()}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="gdp" 
-                  stroke="#8b5cf6" 
-                  fill="#ede9fe"
-                  strokeWidth={2}
+                <Area
+                  type="monotone"
+                  dataKey="gdp"
+                  stroke="#a21caf"
+                  fill="url(#gdpGradient)"
+                  strokeWidth={3}
+                  dot={{ r: 3, fill: '#a21caf' }}
+                  activeDot={{ r: 6, fill: '#a21caf', stroke: '#fff', strokeWidth: 2 }}
+                  isAnimationActive
                 />
               </AreaChart>
             </ResponsiveContainer>

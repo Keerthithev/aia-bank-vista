@@ -124,12 +124,27 @@ const UNIT_MAP: Record<string, string> = {
   'NPL': '%',
 };
 
+// RatioCard component
+function RatioCard({ name, value, value3Y, value5Y }) {
+  return (
+    <div className="border rounded-lg p-4 flex flex-col items-center shadow bg-white/80">
+      <div className="font-semibold text-lg mb-2">{name}</div>
+      <div className="text-2xl font-bold text-blue-700 mb-2">{value}</div>
+      <div className="flex gap-4">
+        <div className="text-xs text-gray-600">3Y <span className="font-semibold">{value3Y}</span></div>
+        <div className="text-xs text-gray-600">5Y <span className="font-semibold">{value5Y}</span></div>
+      </div>
+    </div>
+  );
+}
+
 const FinancialMetrics: React.FC<{ bankName: string }> = ({ bankName }) => {
   const [metrics, setMetrics] = useState<Record<string, MetricData[]>>({});
   const [metricKeys, setMetricKeys] = useState<string[]>([]);
+  const [ratios, setRatios] = useState([]);
 
   useEffect(() => {
-    fetch('/ratio.csv')
+    fetch('/Copy of ratio edited.csv')
       .then(res => res.text())
       .then(text => {
         const parsed = Papa.parse<string[]>(text, { skipEmptyLines: true });
@@ -166,6 +181,14 @@ const FinancialMetrics: React.FC<{ bankName: string }> = ({ bankName }) => {
           }));
         });
         setMetrics(metrics);
+        // Extract ratios
+        const ratios = dataRows.map(row => ({
+          name: row[0],
+          value: parseFloat(row[headerRow.indexOf('ROE')]),
+          value3Y: parseFloat(row[headerRow.indexOf('ROE3Y')]),
+          value5Y: parseFloat(row[headerRow.indexOf('ROE5Y')]),
+        }));
+        setRatios(ratios);
       });
   }, [bankName]);
 
