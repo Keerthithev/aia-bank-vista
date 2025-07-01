@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Database } from 'lucide-react';
 import Papa from 'papaparse';
+import { GROQ_API_KEY } from '../config.local';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 
-const GROQ_API_KEY = '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';
 const SYSTEM_PROMPT = `You are a professional financial assistant specializing in Sri Lankan banks. Always provide clear, concise, and expert-level answers about bank performance, financial ratios, and economic indicators. Do not mention data sources, CSV files, or how you obtained the data. Focus on delivering actionable insights and professional analysis in your responses.`;
 
 // Helper to normalize bank names
