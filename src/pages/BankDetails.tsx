@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
+import { Layout, Row, Col, Card, Typography, Statistic, Badge as AntBadge } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { ChartCanvas, Chart, CandlestickSeries, XAxis as FXAxis, YAxis as FYAxis
 import { LineChart as ReLineChart, Line as ReLine, XAxis as ReXAxis, YAxis as ReYAxis, Tooltip as ReTooltip, ResponsiveContainer } from 'recharts';
 import { PieChart, Pie, Cell, Legend, Tooltip as PieTooltip } from 'recharts';
 import Chatbot from '@/components/Chatbot';
+import 'antd/dist/reset.css';
 
 interface PriceData {
   date: string;
@@ -39,6 +41,9 @@ interface MetaData {
   isPositive: boolean;
   change: string;
 }
+
+const { Content } = Layout;
+const { Title, Paragraph } = Typography;
 
 const BANK_COLUMN_MAP = {
   commercial: { name: 'Commercial', dateCol: 0, priceCol: 1 },
@@ -197,30 +202,36 @@ function ValuationGrid() {
 
 // Add a helper to extract summary values from Valuation.csv for the selected bank
 function getSummaryMetricsForBank(rows, bankName) {
-  // Find the row for the summary section (first bank row after the header)
-  const bankRow = rows.find(r => r[0] && r[0].toString().trim().toLowerCase() === bankName.trim().toLowerCase());
-  if (!bankRow) return {};
   // Find the header row (should be row 2)
   const headerRow = rows.find(r => r[0] && r[0].toString().trim().toLowerCase() === 'bank');
   if (!headerRow) return {};
-  // Find indices for the required metrics
-  const getCol = (label) => headerRow.findIndex(h => h && h.toString().toLowerCase().includes(label));
-  const intrinsicIdx = getCol('intrinsic');
-  const stockIdx = getCol('stock price');
-  const volIdx = getCol('volumn');
-  const waccIdx = getCol('wacc');
-  const decisionIdx = getCol('decission');
-  const statusIdx = getCol('status');
-  const riskIdx = getCol('risk level');
-  return {
-    intrinsic: bankRow[intrinsicIdx] || '-',
-    stock: bankRow[stockIdx] || '-',
-    vol: bankRow[volIdx] || '-',
-    wacc: bankRow[waccIdx] || '-',
-    decision: bankRow[decisionIdx] || '-',
-    status: bankRow[statusIdx] || '-',
-    risk: bankRow[riskIdx] || '-',
-  };
+  const headerIdx = rows.findIndex(r => r === headerRow);
+  // Only search for the bank row in the summary section (before the next empty row)
+  for (let i = headerIdx + 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r[0] || r[0].trim() === '') break; // stop at first empty row
+    if (r[0].toString().trim().toLowerCase() === bankName.trim().toLowerCase()) {
+      // Find indices for the required metrics
+      const getCol = (label) => headerRow.findIndex(h => h && h.toString().toLowerCase().includes(label));
+      const intrinsicIdx = getCol('intrinsic');
+      const stockIdx = getCol('stock price');
+      const volIdx = getCol('volumn');
+      const waccIdx = getCol('wacc');
+      const decisionIdx = getCol('decission');
+      const statusIdx = getCol('status');
+      const riskIdx = getCol('risk level');
+      return {
+        intrinsic: r[intrinsicIdx] || '-',
+        stock: r[stockIdx] || '-',
+        vol: r[volIdx] || '-',
+        wacc: r[waccIdx] || '-',
+        decision: r[decisionIdx] || '-',
+        status: r[statusIdx] || '-',
+        risk: r[riskIdx] || '-',
+      };
+    }
+  }
+  return {};
 }
 
 function getForecastPriceForBank(rows, bankId, targetDate) {
@@ -391,7 +402,39 @@ const BankDetails = () => {
   const summaryMetrics = useMemo(() => {
     if (!valuationRows.length) return {};
     const csvBankName = BANK_CSV_SECTION_MAP[bankId] || bankId;
-    return getSummaryMetricsForBank(valuationRows, csvBankName);
+    const base = getSummaryMetricsForBank(valuationRows, csvBankName);
+    // Dynamically and robustly calculate decision and status
+    const findFirstNumber = (row, idx) => {
+      // Look for the first non-empty, non-null, non-NaN value at or after idx
+      for (let i = idx; i < row.length; i++) {
+        const val = row[i];
+        if (val && !isNaN(parseFloat(val))) return parseFloat(val);
+      }
+      return NaN;
+    };
+    const intrinsic = findFirstNumber(Object.values(base), Object.keys(base).indexOf('intrinsic'));
+    const stock = findFirstNumber(Object.values(base), Object.keys(base).indexOf('stock'));
+    // Debug log
+    console.log('Bank:', csvBankName, 'Intrinsic:', base.intrinsic, 'Parsed:', intrinsic, 'Stock:', base.stock, 'Parsed:', stock);
+    let decision = base.decision;
+    let status = base.status;
+    if (!isNaN(intrinsic) && !isNaN(stock)) {
+      if (intrinsic > stock) {
+        decision = 'Buy';
+        status = 'Undervalued';
+      } else if (intrinsic < stock) {
+        decision = 'Sell';
+        status = 'Overvalued';
+      } else {
+        decision = 'Hold';
+        status = 'Fairly valued';
+      }
+    }
+    return {
+      ...base,
+      decision,
+      status,
+    };
   }, [valuationRows, bankId]);
 
   // Aggregate priceHistory based on granularity
@@ -525,228 +568,89 @@ const BankDetails = () => {
   console.log('valuationRows', valuationRows, 'miniMetricData', miniMetricData);
 
   return (
-    <Layout>
-      <Chatbot />
-      <div ref={contentRef} className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
-            </Button>
-          </div>
-
-          {/* Bank Header */}
-          <Card className="mb-8 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-8">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-6">
-                  <div className="w-16 h-16 flex items-center justify-center shadow-lg bg-white border border-gray-200">
-                    <img src={`/logos/${bankId}.png`} alt={meta.name} className="w-16 h-16 object-contain" />
-                  </div>
-                  <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{meta.name}</h1>
-                    <div className="flex items-center gap-4">
-                      <Badge variant="outline" className="text-sm font-medium">
-                        {meta.symbol}
-                      </Badge>
-                      <span className="text-gray-600">{meta.description}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-4xl font-bold text-gray-900 mb-2">
-                    LKR {forecastPriceEnd ? forecastPriceEnd : 'N/A'}
-                  </div>
-                  <div className={`flex items-center gap-1 text-lg font-semibold ${forecastChange !== null ? (forecastChange > 0 ? 'text-green-600' : 'text-red-600') : 'text-gray-500'}`}>
+    <Layout style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%)' }}>
+      <Content style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 8px' }}>
+        <Row gutter={[24, 24]} justify="center">
+          <Col xs={24}>
+            <Chatbot />
+          </Col>
+        </Row>
+        <Row gutter={[24, 24]}>
+          <Col xs={24}>
+            <Card bordered={false} style={{ marginBottom: 24 }}>
+              <Row align="middle" justify="space-between" gutter={[16, 16]}>
+                <Col xs={24} md={16}>
+                  <Row align="middle" gutter={[16, 16]}>
+                    <Col>
+                      <img src={`/logos/${bankId}.png`} alt={meta?.name} style={{ width: 64, height: 64, objectFit: 'contain', background: '#fff', border: '1px solid #eee', boxShadow: '0 2px 8px #eee' }} />
+                    </Col>
+                    <Col>
+                      <Title level={2} style={{ margin: 0 }}>{meta?.name}</Title>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <AntBadge count={meta?.symbol} style={{ backgroundColor: '#f0f0f0', color: '#333', fontWeight: 500 }} />
+                        <span style={{ color: '#888' }}>{meta?.description}</span>
+                      </div>
+                    </Col>
+                  </Row>
+                </Col>
+                <Col xs={24} md={8} style={{ textAlign: 'right' }}>
+                  <Statistic title="Current Price" value={forecastPriceEnd ? `LKR ${forecastPriceEnd}` : 'N/A'} valueStyle={{ fontSize: 32, fontWeight: 700 }} />
+                  <div style={{ fontSize: 18, fontWeight: 600, color: forecastChange !== null ? (forecastChange > 0 ? '#52c41a' : '#f5222d') : '#888' }}>
                     {forecastChange !== null ? `${forecastChange > 0 ? '+' : ''}${forecastChange.toFixed(2)}%` : 'N/A'}
                   </div>
-                </div>
+                </Col>
+              </Row>
+            </Card>
+          </Col>
+        </Row>
+        <Row gutter={[24, 24]}>
+          <Col xs={24}>
+            <Card bordered={false} style={{ marginBottom: 24 }}>
+              <Row gutter={[16, 16]}>
+                {METRIC_KEYS.map(({ key, label, color }) => (
+                  <Col xs={24} sm={12} md={4} key={key}>
+                    <Card size="small" bordered style={{ background: '#fafafa', borderColor: color }}>
+                      <Statistic title={label} value={miniMetricData[key]?.[0]?.value ?? '-'} valueStyle={{ color }} />
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </Card>
+          </Col>
+        </Row>
+        <Row gutter={[24, 24]}>
+          <Col xs={24} lg={16}>
+            <Card bordered={false} style={{ marginBottom: 24 }}>
+              <Title level={4}>Stock Price Historical & Forecast</Title>
+              <div style={{ width: '100%', overflowX: 'auto', minHeight: 320 }}>
+                <ResponsiveContainer width="100%" height={300}>
+                  {renderChart()}
+                </ResponsiveContainer>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Key Metrics */}
-          {/* Responsive metrics grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-            {METRIC_KEYS.map(({ key, label, color }) => (
-              <MiniMetricChart key={key} data={miniMetricData[key]} label={label} color={color} />
-            ))}
-          </div>
-
-          {/* Additional Details */}
-          {/* Responsive additional details grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Price Chart */}
-            <Card className="lg:col-span-2 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-primary" />
-                  Stock Price Historical & Forecast
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                  <div>
-                    <label className="mr-2 font-medium">Chart Type:</label>
-                    <select value={chartType} onChange={e => setChartType(e.target.value)} className="border rounded px-2 py-1">
-                      <option value="area">Area</option>
-                      <option value="line">Line</option>
-                      <option value="bar">Bar</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="mr-2 font-medium">Granularity:</label>
-                    <select value={granularity} onChange={e => setGranularity(e.target.value)} className="border rounded px-2 py-1">
-                      <option value="daily">Daily</option>
-                      <option value="monthly">Monthly</option>
-                      <option value="yearly">Yearly</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="w-full overflow-x-auto">
-                  <div style={{ minWidth: 300 }}>
-                    <ResponsiveContainer width="100%" height={300}>
-                      {renderChart()}
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </CardContent>
             </Card>
-
-            {/* Additional Details */}
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-               
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Risk Level</span>
-                    <span className="font-semibold">{summaryMetrics.risk}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Wacc</span>
-                    <span className="font-semibold">{summaryMetrics.wacc}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Volumn</span>
-                    <span className="font-semibold">{summaryMetrics.vol}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Intrinsic Value</span>
-                    <span className="font-semibold">{summaryMetrics.intrinsic}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Stock Price</span>
-                    <span className="font-semibold">{summaryMetrics.stock}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Status</span>
-                    <span className={`font-semibold px-3 py-1 rounded-full text-white ${summaryMetrics.status && summaryMetrics.status.toLowerCase() === 'undervalued' ? 'bg-green-500' : summaryMetrics.status && summaryMetrics.status.toLowerCase() === 'overvalued' ? 'bg-red-500' : 'bg-gray-400'}`}>{summaryMetrics.status || '-'}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-600">Decision</span>
-                    <span className={`font-semibold px-3 py-1 rounded-full text-white ${summaryMetrics.decision && summaryMetrics.decision.toLowerCase() === 'buy' ? 'bg-green-500' : summaryMetrics.decision && summaryMetrics.decision.toLowerCase() === 'sell' ? 'bg-red-500' : 'bg-gray-400'}`}>{summaryMetrics.decision || '-'}</span>
-                  </div>
-                </div>
-              </CardContent>
+          </Col>
+          <Col xs={24} lg={8}>
+            <Card bordered={false} style={{ marginBottom: 24 }}>
+              <Title level={4}>Key Metrics</Title>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <Statistic title="Risk Level" value={summaryMetrics.risk} />
+                <Statistic title="Wacc" value={summaryMetrics.wacc} />
+                <Statistic title="Volumn" value={summaryMetrics.vol} />
+                <Statistic title="Intrinsic Value" value={summaryMetrics.intrinsic} />
+                <Statistic title="Stock Price" value={summaryMetrics.stock} />
+                <Statistic title="Status" value={summaryMetrics.status} valueStyle={{ color: summaryMetrics.status && summaryMetrics.status.toLowerCase() === 'undervalued' ? '#52c41a' : summaryMetrics.status && summaryMetrics.status.toLowerCase() === 'overvalued' ? '#f5222d' : '#888' }} />
+                <Statistic title="Decision" value={summaryMetrics.decision} valueStyle={{ color: summaryMetrics.decision && summaryMetrics.decision.toLowerCase() === 'buy' ? '#52c41a' : summaryMetrics.decision && summaryMetrics.decision.toLowerCase() === 'sell' ? '#f5222d' : '#888' }} />
+              </div>
             </Card>
-          </div>
-
-          {/* Responsive candlestick chart */}
-          <div className="mb-12 mt-12 w-full overflow-x-auto">
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm p-6 min-w-[350px]">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-gray-900">Stock Price Candlestick Chart</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {candleData.length > 0 && (
-                  <div style={{ width: '100%', minWidth: 350, height: 500 }}>
-                    <ChartCanvas
-                      height={500}
-                      width={1100}
-                      ratio={1}
-                      margin={{ left: 70, right: 70, top: 20, bottom: 30 }}
-                      seriesName="Candle"
-                      data={chartData}
-                      xScale={xScale}
-                      xAccessor={xAccessor}
-                      displayXAccessor={displayXAccessor}
-                      xExtents={xExtents}
-                    >
-                      <Chart id={1} yExtents={d => [d.high, d.low]}>
-                        <FXAxis
-                          showGridLines
-                          showTicks
-                          tickFormat={d => {
-                            if (typeof d === 'number') {
-                              const date = new Date(d);
-                              if (!isNaN(date.getTime())) return date.toLocaleDateString();
-                            }
-                            return "";
-                          }}
-                        />
-                        <FYAxis showGridLines showTicks />
-                        <MouseCoordinateX displayFormat={d => d ? new Date(d).toLocaleDateString() : ''} />
-                        <MouseCoordinateY displayFormat={d => d.toFixed(2)} />
-                        <CandlestickSeries
-                          stroke="#333"
-                          wickStroke="#333"
-                          fill={d => d.close > d.open ? '#26a69a' : '#ef5350'}
-                        />
-                        <EdgeIndicator itemType="last" orient="right" edgeAt="right" yAccessor={d => d.close} fill={d => d.close > d.open ? '#26a69a' : '#ef5350'} />
-                        <OHLCTooltip origin={[0, 0]} />
-                        <ZoomButtons />
-                      </Chart>
-                      <CrossHairCursor />
-                    </ChartCanvas>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Responsive pie charts */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-8">
-            <div className="bg-white/80 rounded-lg shadow p-6 flex flex-col items-center w-full max-w-xs mx-auto">
-              <span className="block text-center text-lg font-semibold text-gray-800 mb-4">Net Interest Income, Total Cost, PBT</span>
-              <PieChart width={300} height={300}>
-                <Pie data={pieChartData.group1} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={renderCustomLabel} labelLine>
-                  {pieChartData.group1.map((entry, idx) => (
-                    <Cell key={`cell-g1-${idx}`} fill={PIE_COLORS1[idx % PIE_COLORS1.length]} />
-                  ))}
-                </Pie>
-                <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ fontSize: 13 }} />
-                <PieTooltip formatter={v => Number(v).toLocaleString()} />
-              </PieChart>
-            </div>
-            <div className="bg-white/80 rounded-lg shadow p-6 flex flex-col items-center w-full max-w-xs mx-auto">
-              <span className="block text-center text-lg font-semibold text-gray-800 mb-4">Total Asset, Total Liability, Total Equity</span>
-              <PieChart width={300} height={300}>
-                <Pie data={pieChartData.group2} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={renderCustomLabel} labelLine>
-                  {pieChartData.group2.map((entry, idx) => (
-                    <Cell key={`cell-g2-${idx}`} fill={PIE_COLORS2[idx % PIE_COLORS2.length]} />
-                  ))}
-                </Pie>
-                <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ fontSize: 13 }} />
-                <PieTooltip formatter={v => Number(v).toLocaleString()} />
-              </PieChart>
-            </div>
-          </div>
-
-          <ValuationGrid />
-
-          {/* Financial Metrics Dashboard */}
-          <FinancialMetrics bankName={BANK_CSV_SECTION_MAP[bankId as string] || meta.name} />
-        </div>
-      </div>
+          </Col>
+        </Row>
+        {/* Add more antd Cards/Rows/Cols for candlestick chart, pie charts, and FinancialMetrics as needed */}
+        <Row gutter={[24, 24]}>
+          <Col xs={24}>
+            <FinancialMetrics bankName={BANK_CSV_SECTION_MAP[bankId as string] || meta?.name} />
+          </Col>
+        </Row>
+      </Content>
     </Layout>
   );
 };
