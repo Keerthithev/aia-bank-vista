@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import BankDetails from "./pages/BankDetails";
 import NotFound from "./pages/NotFound";
+import { GROQ_API_KEY } from "./config.local";
+console.log("GROQ_API_KEY from App:", GROQ_API_KEY);
 
 const queryClient = new QueryClient();
 
