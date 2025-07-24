@@ -573,13 +573,15 @@ const BankDetails = () => {
           </Card>
 
           {/* Key Metrics */}
-          <div className="grid grid-cols-5 gap-4 mb-6">
+          {/* Responsive metrics grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-6">
             {METRIC_KEYS.map(({ key, label, color }) => (
               <MiniMetricChart key={key} data={miniMetricData[key]} label={label} color={color} />
             ))}
           </div>
 
           {/* Additional Details */}
+          {/* Responsive additional details grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Price Chart */}
             <Card className="lg:col-span-2 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
@@ -590,7 +592,7 @@ const BankDetails = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-4 mb-4">
+                <div className="flex flex-col sm:flex-row gap-4 mb-4">
                   <div>
                     <label className="mr-2 font-medium">Chart Type:</label>
                     <select value={chartType} onChange={e => setChartType(e.target.value)} className="border rounded px-2 py-1">
@@ -608,9 +610,13 @@ const BankDetails = () => {
                     </select>
                   </div>
                 </div>
-                <ResponsiveContainer width="100%" height={300}>
-                  {renderChart()}
-                </ResponsiveContainer>
+                <div className="w-full overflow-x-auto">
+                  <div style={{ minWidth: 300 }}>
+                    <ResponsiveContainer width="100%" height={300}>
+                      {renderChart()}
+                    </ResponsiveContainer>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -654,15 +660,15 @@ const BankDetails = () => {
             </Card>
           </div>
 
-          {/* Place this above the FinancialMetrics component */}
-          <div className="mb-12 mt-12">
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm p-6">
+          {/* Responsive candlestick chart */}
+          <div className="mb-12 mt-12 w-full overflow-x-auto">
+            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm p-6 min-w-[350px]">
               <CardHeader>
                 <CardTitle className="text-2xl font-bold text-gray-900">Stock Price Candlestick Chart</CardTitle>
               </CardHeader>
               <CardContent>
                 {candleData.length > 0 && (
-                  <div style={{ width: '100%', height: 500 }}>
+                  <div style={{ width: '100%', minWidth: 350, height: 500 }}>
                     <ChartCanvas
                       height={500}
                       width={1100}
@@ -707,8 +713,9 @@ const BankDetails = () => {
             </Card>
           </div>
 
+          {/* Responsive pie charts */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-8">
-            <div className="bg-white/80 rounded-lg shadow p-6 flex flex-col items-center">
+            <div className="bg-white/80 rounded-lg shadow p-6 flex flex-col items-center w-full max-w-xs mx-auto">
               <span className="block text-center text-lg font-semibold text-gray-800 mb-4">Net Interest Income, Total Cost, PBT</span>
               <PieChart width={300} height={300}>
                 <Pie data={pieChartData.group1} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={renderCustomLabel} labelLine>
@@ -720,7 +727,7 @@ const BankDetails = () => {
                 <PieTooltip formatter={v => Number(v).toLocaleString()} />
               </PieChart>
             </div>
-            <div className="bg-white/80 rounded-lg shadow p-6 flex flex-col items-center">
+            <div className="bg-white/80 rounded-lg shadow p-6 flex flex-col items-center w-full max-w-xs mx-auto">
               <span className="block text-center text-lg font-semibold text-gray-800 mb-4">Total Asset, Total Liability, Total Equity</span>
               <PieChart width={300} height={300}>
                 <Pie data={pieChartData.group2} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={renderCustomLabel} labelLine>
