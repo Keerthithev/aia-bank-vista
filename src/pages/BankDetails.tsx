@@ -14,7 +14,6 @@ import { ChartCanvas, Chart, CandlestickSeries, XAxis as FXAxis, YAxis as FYAxis
 import { LineChart as ReLineChart, Line as ReLine, XAxis as ReXAxis, YAxis as ReYAxis, Tooltip as ReTooltip, ResponsiveContainer } from 'recharts';
 import { PieChart, Pie, Cell, Legend, Tooltip as PieTooltip } from 'recharts';
 import Chatbot from '@/components/Chatbot';
-import AnimatedBackground from '@/components/AnimatedBackground';
 
 interface PriceData {
   date: string;
@@ -526,232 +525,229 @@ const BankDetails = () => {
   console.log('valuationRows', valuationRows, 'miniMetricData', miniMetricData);
 
   return (
-    <>
-      <AnimatedBackground />
-      <Layout>
-        <Chatbot />
-        <div ref={contentRef} className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-          <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="flex items-center gap-4 mb-8">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Dashboard
-              </Button>
-            </div>
+    <Layout>
+      <Chatbot />
+      <div ref={contentRef} className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-8">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/')}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </Button>
+          </div>
 
-            {/* Bank Header */}
-            <Card className="mb-8 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardContent className="p-8">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 flex items-center justify-center shadow-lg bg-white border border-gray-200">
-                      <img src={`/logos/${bankId}.png`} alt={meta.name} className="w-16 h-16 object-contain" />
-                    </div>
-                    <div>
-                      <h1 className="text-3xl font-bold text-gray-900 mb-2">{meta.name}</h1>
-                      <div className="flex items-center gap-4">
-                        <Badge variant="outline" className="text-sm font-medium">
-                          {meta.symbol}
-                        </Badge>
-                        <span className="text-gray-600">{meta.description}</span>
-                      </div>
+          {/* Bank Header */}
+          <Card className="mb-8 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-8">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-6">
+                  <div className="w-16 h-16 flex items-center justify-center shadow-lg bg-white border border-gray-200">
+                    <img src={`/logos/${bankId}.png`} alt={meta.name} className="w-16 h-16 object-contain" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{meta.name}</h1>
+                    <div className="flex items-center gap-4">
+                      <Badge variant="outline" className="text-sm font-medium">
+                        {meta.symbol}
+                      </Badge>
+                      <span className="text-gray-600">{meta.description}</span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-4xl font-bold text-gray-900 mb-2">
-                      LKR {forecastPriceEnd ? forecastPriceEnd : 'N/A'}
-                    </div>
-                    <div className={`flex items-center gap-1 text-lg font-semibold ${forecastChange !== null ? (forecastChange > 0 ? 'text-green-600' : 'text-red-600') : 'text-gray-500'}`}>
-                      {forecastChange !== null ? `${forecastChange > 0 ? '+' : ''}${forecastChange.toFixed(2)}%` : 'N/A'}
-                    </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-4xl font-bold text-gray-900 mb-2">
+                    LKR {forecastPriceEnd ? forecastPriceEnd : 'N/A'}
+                  </div>
+                  <div className={`flex items-center gap-1 text-lg font-semibold ${forecastChange !== null ? (forecastChange > 0 ? 'text-green-600' : 'text-red-600') : 'text-gray-500'}`}>
+                    {forecastChange !== null ? `${forecastChange > 0 ? '+' : ''}${forecastChange.toFixed(2)}%` : 'N/A'}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Key Metrics */}
+          {/* Responsive metrics grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            {METRIC_KEYS.map(({ key, label, color }) => (
+              <MiniMetricChart key={key} data={miniMetricData[key]} label={label} color={color} />
+            ))}
+          </div>
+
+          {/* Additional Details */}
+          {/* Responsive additional details grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Price Chart */}
+            <Card className="lg:col-span-2 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                  Stock Price Historical & Forecast
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                  <div>
+                    <label className="mr-2 font-medium">Chart Type:</label>
+                    <select value={chartType} onChange={e => setChartType(e.target.value)} className="border rounded px-2 py-1">
+                      <option value="area">Area</option>
+                      <option value="line">Line</option>
+                      <option value="bar">Bar</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mr-2 font-medium">Granularity:</label>
+                    <select value={granularity} onChange={e => setGranularity(e.target.value)} className="border rounded px-2 py-1">
+                      <option value="daily">Daily</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="yearly">Yearly</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="w-full overflow-x-auto">
+                  <div style={{ minWidth: 300 }}>
+                    <ResponsiveContainer width="100%" height={300}>
+                      {renderChart()}
+                    </ResponsiveContainer>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Key Metrics */}
-            {/* Responsive metrics grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-              {METRIC_KEYS.map(({ key, label, color }) => (
-                <MiniMetricChart key={key} data={miniMetricData[key]} label={label} color={color} />
-              ))}
-            </div>
-
             {/* Additional Details */}
-            {/* Responsive additional details grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Price Chart */}
-              <Card className="lg:col-span-2 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5 text-primary" />
-                    Stock Price Historical & Forecast
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                    <div>
-                      <label className="mr-2 font-medium">Chart Type:</label>
-                      <select value={chartType} onChange={e => setChartType(e.target.value)} className="border rounded px-2 py-1">
-                        <option value="area">Area</option>
-                        <option value="line">Line</option>
-                        <option value="bar">Bar</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="mr-2 font-medium">Granularity:</label>
-                      <select value={granularity} onChange={e => setGranularity(e.target.value)} className="border rounded px-2 py-1">
-                        <option value="daily">Daily</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly</option>
-                      </select>
-                    </div>
+            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              <CardHeader>
+               
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="text-gray-600">Risk Level</span>
+                    <span className="font-semibold">{summaryMetrics.risk}</span>
                   </div>
-                  <div className="w-full overflow-x-auto">
-                    <div style={{ minWidth: 300 }}>
-                      <ResponsiveContainer width="100%" height={300}>
-                        {renderChart()}
-                      </ResponsiveContainer>
-                    </div>
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="text-gray-600">Wacc</span>
+                    <span className="font-semibold">{summaryMetrics.wacc}</span>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Additional Details */}
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardHeader>
-                 
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-gray-600">Risk Level</span>
-                      <span className="font-semibold">{summaryMetrics.risk}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-gray-600">Wacc</span>
-                      <span className="font-semibold">{summaryMetrics.wacc}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-gray-600">Volumn</span>
-                      <span className="font-semibold">{summaryMetrics.vol}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-gray-600">Intrinsic Value</span>
-                      <span className="font-semibold">{summaryMetrics.intrinsic}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-gray-600">Stock Price</span>
-                      <span className="font-semibold">{summaryMetrics.stock}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-gray-600">Status</span>
-                      <span className={`font-semibold px-3 py-1 rounded-full text-white ${summaryMetrics.status && summaryMetrics.status.toLowerCase() === 'undervalued' ? 'bg-green-500' : summaryMetrics.status && summaryMetrics.status.toLowerCase() === 'overvalued' ? 'bg-red-500' : 'bg-gray-400'}`}>{summaryMetrics.status || '-'}</span>
-                    </div>
-                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <span className="text-gray-600">Decision</span>
-                      <span className={`font-semibold px-3 py-1 rounded-full text-white ${summaryMetrics.decision && summaryMetrics.decision.toLowerCase() === 'buy' ? 'bg-green-500' : summaryMetrics.decision && summaryMetrics.decision.toLowerCase() === 'sell' ? 'bg-red-500' : 'bg-gray-400'}`}>{summaryMetrics.decision || '-'}</span>
-                    </div>
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="text-gray-600">Volumn</span>
+                    <span className="font-semibold">{summaryMetrics.vol}</span>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Responsive candlestick chart */}
-            <div className="mb-12 mt-12 w-full overflow-x-auto">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm p-6 min-w-[350px]">
-                <CardHeader>
-                  <CardTitle className="text-2xl font-bold text-gray-900">Stock Price Candlestick Chart</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {candleData.length > 0 && (
-                    <div style={{ width: '100%', minWidth: 350, height: 500 }}>
-                      <ChartCanvas
-                        height={500}
-                        width={1100}
-                        ratio={1}
-                        margin={{ left: 70, right: 70, top: 20, bottom: 30 }}
-                        seriesName="Candle"
-                        data={chartData}
-                        xScale={xScale}
-                        xAccessor={xAccessor}
-                        displayXAccessor={displayXAccessor}
-                        xExtents={xExtents}
-                      >
-                        <Chart id={1} yExtents={d => [d.high, d.low]}>
-                          <FXAxis
-                            showGridLines
-                            showTicks
-                            tickFormat={d => {
-                              if (typeof d === 'number') {
-                                const date = new Date(d);
-                                if (!isNaN(date.getTime())) return date.toLocaleDateString();
-                              }
-                              return "";
-                            }}
-                          />
-                          <FYAxis showGridLines showTicks />
-                          <MouseCoordinateX displayFormat={d => d ? new Date(d).toLocaleDateString() : ''} />
-                          <MouseCoordinateY displayFormat={d => d.toFixed(2)} />
-                          <CandlestickSeries
-                            stroke="#333"
-                            wickStroke="#333"
-                            fill={d => d.close > d.open ? '#26a69a' : '#ef5350'}
-                          />
-                          <EdgeIndicator itemType="last" orient="right" edgeAt="right" yAccessor={d => d.close} fill={d => d.close > d.open ? '#26a69a' : '#ef5350'} />
-                          <OHLCTooltip origin={[0, 0]} />
-                          <ZoomButtons />
-                        </Chart>
-                        <CrossHairCursor />
-                      </ChartCanvas>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Responsive pie charts */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-8">
-              <div className="bg-white/80 rounded-lg shadow p-6 flex flex-col items-center w-full max-w-xs mx-auto">
-                <span className="block text-center text-lg font-semibold text-gray-800 mb-4">Net Interest Income, Total Cost, PBT</span>
-                <PieChart width={300} height={300}>
-                  <Pie data={pieChartData.group1} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={renderCustomLabel} labelLine>
-                    {pieChartData.group1.map((entry, idx) => (
-                      <Cell key={`cell-g1-${idx}`} fill={PIE_COLORS1[idx % PIE_COLORS1.length]} />
-                    ))}
-                  </Pie>
-                  <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ fontSize: 13 }} />
-                  <PieTooltip formatter={v => Number(v).toLocaleString()} />
-                </PieChart>
-              </div>
-              <div className="bg-white/80 rounded-lg shadow p-6 flex flex-col items-center w-full max-w-xs mx-auto">
-                <span className="block text-center text-lg font-semibold text-gray-800 mb-4">Total Asset, Total Liability, Total Equity</span>
-                <PieChart width={300} height={300}>
-                  <Pie data={pieChartData.group2} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={renderCustomLabel} labelLine>
-                    {pieChartData.group2.map((entry, idx) => (
-                      <Cell key={`cell-g2-${idx}`} fill={PIE_COLORS2[idx % PIE_COLORS2.length]} />
-                    ))}
-                  </Pie>
-                  <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ fontSize: 13 }} />
-                  <PieTooltip formatter={v => Number(v).toLocaleString()} />
-                </PieChart>
-              </div>
-            </div>
-
-            <ValuationGrid />
-
-            {/* Financial Metrics Dashboard */}
-            <FinancialMetrics bankName={BANK_CSV_SECTION_MAP[bankId as string] || meta.name} />
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="text-gray-600">Intrinsic Value</span>
+                    <span className="font-semibold">{summaryMetrics.intrinsic}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="text-gray-600">Stock Price</span>
+                    <span className="font-semibold">{summaryMetrics.stock}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="text-gray-600">Status</span>
+                    <span className={`font-semibold px-3 py-1 rounded-full text-white ${summaryMetrics.status && summaryMetrics.status.toLowerCase() === 'undervalued' ? 'bg-green-500' : summaryMetrics.status && summaryMetrics.status.toLowerCase() === 'overvalued' ? 'bg-red-500' : 'bg-gray-400'}`}>{summaryMetrics.status || '-'}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="text-gray-600">Decision</span>
+                    <span className={`font-semibold px-3 py-1 rounded-full text-white ${summaryMetrics.decision && summaryMetrics.decision.toLowerCase() === 'buy' ? 'bg-green-500' : summaryMetrics.decision && summaryMetrics.decision.toLowerCase() === 'sell' ? 'bg-red-500' : 'bg-gray-400'}`}>{summaryMetrics.decision || '-'}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
+
+          {/* Responsive candlestick chart */}
+          <div className="mb-12 mt-12 w-full overflow-x-auto">
+            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm p-6 min-w-[350px]">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold text-gray-900">Stock Price Candlestick Chart</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {candleData.length > 0 && (
+                  <div style={{ width: '100%', minWidth: 350, height: 500 }}>
+                    <ChartCanvas
+                      height={500}
+                      width={1100}
+                      ratio={1}
+                      margin={{ left: 70, right: 70, top: 20, bottom: 30 }}
+                      seriesName="Candle"
+                      data={chartData}
+                      xScale={xScale}
+                      xAccessor={xAccessor}
+                      displayXAccessor={displayXAccessor}
+                      xExtents={xExtents}
+                    >
+                      <Chart id={1} yExtents={d => [d.high, d.low]}>
+                        <FXAxis
+                          showGridLines
+                          showTicks
+                          tickFormat={d => {
+                            if (typeof d === 'number') {
+                              const date = new Date(d);
+                              if (!isNaN(date.getTime())) return date.toLocaleDateString();
+                            }
+                            return "";
+                          }}
+                        />
+                        <FYAxis showGridLines showTicks />
+                        <MouseCoordinateX displayFormat={d => d ? new Date(d).toLocaleDateString() : ''} />
+                        <MouseCoordinateY displayFormat={d => d.toFixed(2)} />
+                        <CandlestickSeries
+                          stroke="#333"
+                          wickStroke="#333"
+                          fill={d => d.close > d.open ? '#26a69a' : '#ef5350'}
+                        />
+                        <EdgeIndicator itemType="last" orient="right" edgeAt="right" yAccessor={d => d.close} fill={d => d.close > d.open ? '#26a69a' : '#ef5350'} />
+                        <OHLCTooltip origin={[0, 0]} />
+                        <ZoomButtons />
+                      </Chart>
+                      <CrossHairCursor />
+                    </ChartCanvas>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Responsive pie charts */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-8">
+            <div className="bg-white/80 rounded-lg shadow p-6 flex flex-col items-center w-full max-w-xs mx-auto">
+              <span className="block text-center text-lg font-semibold text-gray-800 mb-4">Net Interest Income, Total Cost, PBT</span>
+              <PieChart width={300} height={300}>
+                <Pie data={pieChartData.group1} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={renderCustomLabel} labelLine>
+                  {pieChartData.group1.map((entry, idx) => (
+                    <Cell key={`cell-g1-${idx}`} fill={PIE_COLORS1[idx % PIE_COLORS1.length]} />
+                  ))}
+                </Pie>
+                <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ fontSize: 13 }} />
+                <PieTooltip formatter={v => Number(v).toLocaleString()} />
+              </PieChart>
+            </div>
+            <div className="bg-white/80 rounded-lg shadow p-6 flex flex-col items-center w-full max-w-xs mx-auto">
+              <span className="block text-center text-lg font-semibold text-gray-800 mb-4">Total Asset, Total Liability, Total Equity</span>
+              <PieChart width={300} height={300}>
+                <Pie data={pieChartData.group2} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={renderCustomLabel} labelLine>
+                  {pieChartData.group2.map((entry, idx) => (
+                    <Cell key={`cell-g2-${idx}`} fill={PIE_COLORS2[idx % PIE_COLORS2.length]} />
+                  ))}
+                </Pie>
+                <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ fontSize: 13 }} />
+                <PieTooltip formatter={v => Number(v).toLocaleString()} />
+              </PieChart>
+            </div>
+          </div>
+
+          <ValuationGrid />
+
+          {/* Financial Metrics Dashboard */}
+          <FinancialMetrics bankName={BANK_CSV_SECTION_MAP[bankId as string] || meta.name} />
         </div>
-      </Layout>
-    </>
+      </div>
+    </Layout>
   );
 };
 
