@@ -10,7 +10,8 @@
     "allowJs": true,
     "noUnusedLocals": false,
     "strictNullChecks": false,
-    "module": "esnext"
+    "module": "esnext",
+       "jsx": "react-jsx"
   },
   "include": ["src"]
 }
