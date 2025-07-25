@@ -202,36 +202,30 @@ function ValuationGrid() {
 
 // Add a helper to extract summary values from Valuation.csv for the selected bank
 function getSummaryMetricsForBank(rows, bankName) {
+  // Find the row for the summary section (first bank row after the header)
+  const bankRow = rows.find(r => r[0] && r[0].toString().trim().toLowerCase() === bankName.trim().toLowerCase());
+  if (!bankRow) return {};
   // Find the header row (should be row 2)
   const headerRow = rows.find(r => r[0] && r[0].toString().trim().toLowerCase() === 'bank');
   if (!headerRow) return {};
-  const headerIdx = rows.findIndex(r => r === headerRow);
-  // Only search for the bank row in the summary section (before the next empty row)
-  for (let i = headerIdx + 1; i < rows.length; i++) {
-    const r = rows[i];
-    if (!r[0] || r[0].trim() === '') break; // stop at first empty row
-    if (r[0].toString().trim().toLowerCase() === bankName.trim().toLowerCase()) {
-      // Find indices for the required metrics
-      const getCol = (label) => headerRow.findIndex(h => h && h.toString().toLowerCase().includes(label));
-      const intrinsicIdx = getCol('intrinsic');
-      const stockIdx = getCol('stock price');
-      const volIdx = getCol('volumn');
-      const waccIdx = getCol('wacc');
-      const decisionIdx = getCol('decission');
-      const statusIdx = getCol('status');
-      const riskIdx = getCol('risk level');
-      return {
-        intrinsic: r[intrinsicIdx] || '-',
-        stock: r[stockIdx] || '-',
-        vol: r[volIdx] || '-',
-        wacc: r[waccIdx] || '-',
-        decision: r[decisionIdx] || '-',
-        status: r[statusIdx] || '-',
-        risk: r[riskIdx] || '-',
-      };
-    }
-  }
-  return {};
+  // Find indices for the required metrics
+  const getCol = (label) => headerRow.findIndex(h => h && h.toString().toLowerCase().includes(label));
+  const intrinsicIdx = getCol('intrinsic');
+  const stockIdx = getCol('stock price');
+  const volIdx = getCol('volumn');
+  const waccIdx = getCol('wacc');
+  const decisionIdx = getCol('decission');
+  const statusIdx = getCol('status');
+  const riskIdx = getCol('risk level');
+  return {
+    intrinsic: bankRow[intrinsicIdx] || '-',
+    stock: bankRow[stockIdx] || '-',
+    vol: bankRow[volIdx] || '-',
+    wacc: bankRow[waccIdx] || '-',
+    decision: bankRow[decisionIdx] || '-',
+    status: bankRow[statusIdx] || '-',
+    risk: bankRow[riskIdx] || '-',
+  };
 }
 
 function getForecastPriceForBank(rows, bankId, targetDate) {
