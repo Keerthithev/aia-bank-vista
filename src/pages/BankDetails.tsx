@@ -6,6 +6,7 @@ import Chatbot from '@/components/Chatbot';
 import 'antd/dist/reset.css';
 import Papa from 'papaparse';
 import { ResponsiveContainer, LineChart, BarChart, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Line, Bar, Area, ComposedChart, PieChart, Pie, Cell, Legend } from 'recharts';
+import { discontinuousTimeScaleProvider } from 'react-financial-charts';
 
 interface PriceData {
   date: string;
