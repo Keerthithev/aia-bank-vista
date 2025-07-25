@@ -4,6 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import FinancialMetrics from '@/components/FinancialMetrics';
 import Chatbot from '@/components/Chatbot';
 import 'antd/dist/reset.css';
+import Papa from 'papaparse';
+import { ResponsiveContainer, LineChart, BarChart, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Line, Bar, Area, ComposedChart, PieChart, Pie, Cell, Legend } from 'recharts';
 
 interface PriceData {
   date: string;
