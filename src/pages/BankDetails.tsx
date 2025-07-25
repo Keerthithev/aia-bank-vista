@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
+import { Layout, Row, Col, Card, Statistic, Button, Badge } from 'antd';
+import { gsap } from 'gsap';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -262,7 +264,10 @@ function getPieChartDataForBank(rows, bankName) {
   return { group1, group2 };
 }
 
+const { Content } = Layout;
+
 const BankDetails = () => {
+  const bgRef = useRef<HTMLDivElement>(null);
   const { bankId } = useParams();
   const navigate = useNavigate();
   const [bankData, setBankData] = useState(null);
@@ -488,6 +493,18 @@ const BankDetails = () => {
     ) : null;
   };
 
+  useEffect(() => {
+    if (bgRef.current) {
+      gsap.to(bgRef.current, {
+        background: 'linear-gradient(120deg, #e0e7ff 0%, #f0fdfa 100%)',
+        duration: 2,
+        repeat: -1,
+        yoyo: true,
+        ease: 'power1.inOut',
+      });
+    }
+  }, []);
+
   if (loading) return <div>Loading...</div>;
 
   if (!meta) {
@@ -525,66 +542,57 @@ const BankDetails = () => {
   console.log('valuationRows', valuationRows, 'miniMetricData', miniMetricData);
 
   return (
-    <Layout>
-      <Chatbot />
-      <div ref={contentRef} className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
-            </Button>
-          </div>
-
-          {/* Bank Header */}
-          <Card className="mb-8 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-8">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-6">
-                  <div className="w-16 h-16 flex items-center justify-center shadow-lg bg-white border border-gray-200">
-                    <img src={`/logos/${bankId}.png`} alt={meta.name} className="w-16 h-16 object-contain" />
-                  </div>
-                  <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">{meta.name}</h1>
-                    <div className="flex items-center gap-4">
-                      <Badge variant="outline" className="text-sm font-medium">
-                        {meta.symbol}
-                      </Badge>
-                      <span className="text-gray-600">{meta.description}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-4xl font-bold text-gray-900 mb-2">
-                    LKR {forecastPriceEnd ? forecastPriceEnd : 'N/A'}
-                  </div>
-                  <div className={`flex items-center gap-1 text-lg font-semibold ${forecastChange !== null ? (forecastChange > 0 ? 'text-green-600' : 'text-red-600') : 'text-gray-500'}`}>
-                    {forecastChange !== null ? `${forecastChange > 0 ? '+' : ''}${forecastChange.toFixed(2)}%` : 'N/A'}
-                  </div>
-                </div>
+    <Layout style={{ minHeight: '100vh', position: 'relative' }}>
+      <div
+        ref={bgRef}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 0,
+          background: 'linear-gradient(120deg, #f0fdfa 0%, #e0e7ff 100%)',
+          transition: 'background 1s',
+        }}
+      />
+      <Content style={{ position: 'relative', zIndex: 1, padding: '24px 0' }}>
+        <Chatbot />
+        <Row justify="center" style={{ marginBottom: 32 }}>
+          <Col xs={24} sm={22} md={20} lg={18}>
+            <Card bordered={false} style={{ borderRadius: 16, marginBottom: 24 }}>
+              {/* Bank Header */}
+              <Row gutter={[16, 16]} align="middle">
+                <Col xs={24} md={4} style={{ textAlign: 'center' }}>
+                  <img src={`/logos/${bankId}.png`} alt={meta?.name} style={{ width: 64, height: 64, objectFit: 'contain' }} />
+                </Col>
+                <Col xs={24} md={14}>
+                  <h1 style={{ fontSize: 28, fontWeight: 700 }}>{meta?.name}</h1>
+                  <Badge color="blue" text={meta?.symbol} style={{ marginRight: 8 }} />
+                  <span style={{ color: '#888' }}>{meta?.description}</span>
+                </Col>
+                <Col xs={24} md={6} style={{ textAlign: 'right' }}>
+                  <Statistic title="Current Price" value={forecastPriceEnd ? `LKR ${forecastPriceEnd}` : 'N/A'} />
+                  <Statistic
+                    title="Forecast Change"
+                    value={forecastChange !== null ? `${forecastChange > 0 ? '+' : ''}${forecastChange.toFixed(2)}%` : 'N/A'}
+                    valueStyle={{ color: forecastChange !== null ? (forecastChange > 0 ? '#3f8600' : '#cf1322') : '#888' }}
+                  />
+                </Col>
+              </Row>
+            </Card>
+          </Col>
+        </Row>
+        {/* Metrics and Charts */}
+        <Row justify="center" gutter={[16, 16]}>
+          <Col xs={24} md={16}>
+            <Card bordered={false} style={{ borderRadius: 16, marginBottom: 24 }}>
+              {/* Key Metrics */}
+              {/* Responsive metrics grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                {METRIC_KEYS.map(({ key, label, color }) => (
+                  <MiniMetricChart key={key} data={miniMetricData[key]} label={label} color={color} />
+                ))}
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Key Metrics */}
-          {/* Responsive metrics grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-            {METRIC_KEYS.map(({ key, label, color }) => (
-              <MiniMetricChart key={key} data={miniMetricData[key]} label={label} color={color} />
-            ))}
-          </div>
-
-          {/* Additional Details */}
-          {/* Responsive additional details grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Price Chart */}
-            <Card className="lg:col-span-2 border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+              {/* Price Chart */}
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-primary" />
@@ -621,7 +629,7 @@ const BankDetails = () => {
             </Card>
 
             {/* Additional Details */}
-            <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <Card bordered={false} style={{ borderRadius: 16, marginBottom: 24 }}>
               <CardHeader>
                
               </CardHeader>
@@ -658,7 +666,8 @@ const BankDetails = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </Col>
+        </Row>
 
           {/* Responsive candlestick chart */}
           <div className="mb-12 mt-12 w-full overflow-x-auto">
@@ -745,9 +754,10 @@ const BankDetails = () => {
 
           {/* Financial Metrics Dashboard */}
           <FinancialMetrics bankName={BANK_CSV_SECTION_MAP[bankId as string] || meta.name} />
-        </div>
-      </div>
-    </Layout>
+        </Col>
+      </Row>
+    </Content>
+  </Layout>
   );
 };
 

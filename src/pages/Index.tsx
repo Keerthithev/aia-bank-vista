@@ -1,87 +1,61 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { Layout, Row, Col, Card } from 'antd';
+import { gsap } from 'gsap';
 import BankSelector from '@/components/BankSelector';
 import EconomicIndicators from '@/components/EconomicIndicators';
-import { TrendingUp, BarChart3 } from 'lucide-react';
-import Papa from 'papaparse';
-import Layout from '@/components/Layout';
 import Chatbot from '@/components/Chatbot';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+
+const { Content } = Layout;
 
 const Index = () => {
-  const [stats, setStats] = useState({ banks: 0, avgPerformance: 0, totalVolume: 0 });
+  const bgRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch('/forcastnew.csv')
-      .then(res => res.text())
-      .then(text => {
-        const rows = text.split(/\r?\n/).map(row => row.split(','));
-        // Count banks from header row
-        const header = rows[0];
-        let banks = 0;
-        for (let i = 0; i < header.length; i++) {
-          if (header[i] && header[i] !== '') banks++;
-        }
-        banks = banks / 2; // Each bank has 2 columns: Date, Price (no empty columns in new format)
-        // Calculate total volume and avg performance
-        let totalVolume = 0;
-        let priceCount = 0;
-        let priceSum = 0;
-        for (let i = 2; i < rows.length; i++) {
-          for (let j = 1; j < header.length; j += 2) { // Price columns are at odd indices
-            const price = parseFloat(rows[i][j]);
-            if (!isNaN(price)) {
-              totalVolume += price;
-              priceSum += price;
-              priceCount++;
-            }
-          }
-        }
-        const avgPerformance = priceCount > 0 ? (priceSum / priceCount) : 0;
-        setStats({ banks: Math.round(banks), avgPerformance, totalVolume });
+    if (bgRef.current) {
+      gsap.to(bgRef.current, {
+        background: 'linear-gradient(120deg, #e0e7ff 0%, #f0fdfa 100%)',
+        duration: 2,
+        repeat: -1,
+        yoyo: true,
+        ease: 'power1.inOut',
       });
+    }
   }, []);
 
   return (
-    <Layout>
-      <Chatbot />
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-2 sm:px-6 py-4 sm:py-8">
-        {/* Search Section */}
-        <section className="mb-6 sm:mb-12">
-          <Card className="mb-4 sm:mb-8 shadow-lg bg-gradient-to-br from-white via-blue-50 to-blue-100 animate-fade-in w-full">
-            <CardContent className="text-center py-6 sm:py-8">
-              <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">
-                Search Trading Banks
-              </h2>
-              <p className="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto mb-4 sm:mb-6">
+    <Layout style={{ minHeight: '100vh', position: 'relative' }}>
+      <div
+        ref={bgRef}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 0,
+          background: 'linear-gradient(120deg, #f0fdfa 0%, #e0e7ff 100%)',
+          transition: 'background 1s',
+        }}
+      />
+      <Content style={{ position: 'relative', zIndex: 1, padding: '24px 0' }}>
+        <Chatbot />
+        <Row justify="center" style={{ marginBottom: 32 }}>
+          <Col xs={24} sm={20} md={16} lg={12}>
+            <Card bordered={false} style={{ textAlign: 'center', borderRadius: 16 }}>
+              <h2 style={{ fontSize: 32, fontWeight: 700, marginBottom: 8 }}>Search Trading Banks</h2>
+              <p style={{ fontSize: 18, color: '#555', marginBottom: 24 }}>
                 Find and analyze bank stocks with real-time data and comprehensive insights
               </p>
-              <div className="flex justify-center mb-2 sm:mb-4">
-                <BankSelector />
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        {/* Economic Indicators Section */}
-        <section>
-          <Card className="shadow-lg bg-gradient-to-br from-white via-blue-50 to-blue-100 animate-fade-in w-full">
-            <CardContent>
-              <div className="flex flex-col sm:flex-row items-center gap-3 mb-6 sm:mb-8">
-                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mb-2 sm:mb-0">
-                  <BarChart3 className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-xl sm:text-3xl font-bold text-gray-900">Economic Indicator Trends</h2>
-                  <p className="text-gray-600 mt-1 text-sm sm:text-base">Monitor key economic factors affecting the banking sector</p>
-                </div>
-              </div>
+              <BankSelector />
+            </Card>
+          </Col>
+        </Row>
+        <Row justify="center">
+          <Col xs={24} sm={20} md={16} lg={12}>
+            <Card bordered={false} style={{ borderRadius: 16 }}>
+              <h2 style={{ fontSize: 28, fontWeight: 600, marginBottom: 16 }}>Economic Indicator Trends</h2>
               <EconomicIndicators />
-            </CardContent>
-          </Card>
-        </section>
-      </main>
+            </Card>
+          </Col>
+        </Row>
+      </Content>
     </Layout>
   );
 };
