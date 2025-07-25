@@ -2,20 +2,13 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Layout, Row, Col, Card, Statistic, Button, Badge } from 'antd';
 import { gsap } from 'gsap';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Building2, TrendingUp, TrendingDown, DollarSign, Users, Calendar, BarChart3 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, AreaChart, Area, BarChart, Bar, ComposedChart } from 'recharts';
 import Papa from 'papaparse';
-import Layout from '@/components/Layout';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import Chatbot from '@/components/Chatbot';
 import FinancialMetrics from '@/components/FinancialMetrics';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, AreaChart, Area, BarChart, Bar, ComposedChart } from 'recharts';
+import { PieChart, Pie, Cell, Legend, Tooltip as PieTooltip } from 'recharts';
 import { ChartCanvas, Chart, CandlestickSeries, XAxis as FXAxis, YAxis as FYAxis, discontinuousTimeScaleProvider, withDeviceRatio, CrossHairCursor, MouseCoordinateX, MouseCoordinateY, EdgeIndicator, ZoomButtons, OHLCTooltip } from 'react-financial-charts';
 import { LineChart as ReLineChart, Line as ReLine, XAxis as ReXAxis, YAxis as ReYAxis, Tooltip as ReTooltip, ResponsiveContainer } from 'recharts';
-import { PieChart, Pie, Cell, Legend, Tooltip as PieTooltip } from 'recharts';
-import Chatbot from '@/components/Chatbot';
 
 interface PriceData {
   date: string;
