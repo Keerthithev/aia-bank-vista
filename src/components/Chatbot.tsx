@@ -135,6 +135,7 @@ function DataBadge() {
 }
 
 function Chatbot() {
+   console.log('GROQ API KEY:', import.meta.env.VITE_GROQ_API_KEY);
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
     { role: 'assistant', content: 'Hi! I am your banking assistant. Ask me anything about Sri Lankan banks, their performance, or economic indicators.', fromCSV: false }
