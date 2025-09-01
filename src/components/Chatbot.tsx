@@ -310,15 +310,30 @@ function Chatbot() {
           'Authorization': `Bearer ${GROQ_API_KEY}`,
         },
         body: JSON.stringify({
-          model: 'llama3-8b-8192',
+         model: 'llama-3.3-70b-versatile',
           messages: chatHistory,
           temperature: 0.2,
         })
       });
-      const data = await res.json();
+       let data;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        console.error('Failed to parse Groq API response as JSON:', jsonErr);
+        setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I could not get a response (invalid API response).', fromCSV: false }]);
+        setLoading(false);
+        return;
+      }
+      if (!res.ok) {
+        console.error('Groq API error:', data);
+        setMessages(prev => [...prev, { role: 'assistant', content: `Sorry, I could not get a response. (API error: ${data.error?.message || JSON.stringify(data)})`, fromCSV: false }]);
+        setLoading(false);
+        return;
+      }
       const reply = data.choices?.[0]?.message?.content || 'Sorry, I could not get a response.';
       setMessages(prev => [...prev, { role: 'assistant', content: reply, fromCSV: false }]);
     } catch (e) {
+       console.error('Groq API fetch error:', e);
       setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I could not connect to the AI assistant at the moment. Please check your internet connection or try again in a few seconds.', fromCSV: false }]);
     } finally {
       setLoading(false);
